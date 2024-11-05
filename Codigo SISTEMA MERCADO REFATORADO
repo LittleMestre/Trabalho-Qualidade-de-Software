@@ -1,0 +1,169 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+class Produto {
+    private String nome;
+    private double preco;
+    private int quantidade;
+
+    public Produto(String nome, double preco, int quantidade) {
+        this.nome = nome;
+        this.preco = preco;
+        this.quantidade = quantidade;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public double getPreco() {
+        return preco;
+    }
+
+    public int getQuantidade() {
+        return quantidade;
+    }
+
+    public void setPreco(double preco) {
+        if (preco >= 0) {
+            this.preco = preco;
+        } else {
+            System.out.println("Preço não pode ser negativo.");
+        }
+    }
+
+    public void atualizarQuantidade(int qtd) {
+        if (qtd < 0 && this.quantidade + qtd < 0) {
+            System.out.println("Estoque insuficiente para essa operação.");
+        } else {
+            this.quantidade += qtd;
+        }
+    }
+}
+
+class Mercado {
+    private ArrayList<Produto> produtos = new ArrayList<>();
+    private double saldoCaixa = 0;
+
+    public void adicionarProduto(String nome, double preco, int quantidade) {
+        if (nome.isEmpty() || preco <= 0 || quantidade <= 0) {
+            System.out.println("Dados inválidos para adicionar o produto.");
+            return;
+        }
+        Produto p = new Produto(nome, preco, quantidade);
+        produtos.add(p);
+    }
+
+    public void listarProdutos() {
+        if (produtos.isEmpty()) {
+            System.out.println("Nenhum produto disponível.");
+            return;
+        }
+        for (Produto p : produtos) {
+            System.out.println("Nome: " + p.getNome() + ", Preço: " + p.getPreco() + ", Quantidade: " + p.getQuantidade());
+        }
+    }
+
+    public double calcularTotalCompra(ArrayList<Produto> carrinho) {
+        double total = 0;
+        for (Produto p : carrinho) {
+            total += p.getPreco() * p.getQuantidade();
+        }
+        return total;
+    }
+
+    public void comprarProduto(String nome, int quantidade, ArrayList<Produto> carrinho) {
+        Produto produto = buscarProduto(nome);
+        if (produto != null && quantidade <= produto.getQuantidade()) {
+            produto.atualizarQuantidade(-quantidade);
+            carrinho.add(new Produto(nome, produto.getPreco(), quantidade));
+            saldoCaixa += produto.getPreco() * quantidade;
+        } else {
+            System.out.println("Não é possível comprar esse produto. Verifique o estoque.");
+        }
+    }
+
+    public void devolverProduto(String nome, int quantidade) {
+        Produto produto = buscarProduto(nome);
+        if (produto != null) {
+            produto.atualizarQuantidade(quantidade);
+            saldoCaixa -= produto.getPreco() * quantidade;
+        } else {
+            System.out.println("Produto não encontrado para devolução!");
+        }
+    }
+
+    private Produto buscarProduto(String nome) {
+        for (Produto p : produtos) {
+            if (p.getNome().equalsIgnoreCase(nome)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    public void exibirSaldoCaixa() {
+        System.out.println("Saldo do caixa: R$ " + saldoCaixa);
+    }
+}
+
+public class SistemaMercado {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Mercado mercado = new Mercado();
+        ArrayList<Produto> carrinho = new ArrayList<>();
+
+        // Adicionando produtos ao mercado
+        mercado.adicionarProduto("Arroz", 20.0, 50);
+        mercado.adicionarProduto("Feijão", 10.0, 30);
+        mercado.adicionarProduto("Macarrão", 5.0, 20);
+        mercado.adicionarProduto("Cerveja", 3.5, 100);
+
+        while (true) {
+            System.out.println("Escolha uma opção:");
+            System.out.println("1 - Listar produtos");
+            System.out.println("2 - Comprar produto");
+            System.out.println("3 - Ver total do carrinho");
+            System.out.println("4 - Devolver produto");
+            System.out.println("5 - Exibir saldo do caixa");
+            System.out.println("6 - Sair");
+
+            int opcao = scanner.nextInt();
+
+            switch (opcao) {
+                case 1:
+                    mercado.listarProdutos();
+                    break;
+                case 2:
+                    System.out.print("Digite o nome do produto: ");
+                    String nomeProduto = scanner.next();
+                    System.out.print("Digite a quantidade: ");
+                    int qtd = scanner.nextInt();
+
+                    mercado.comprarProduto(nomeProduto, qtd, carrinho);
+                    break;
+                case 3:
+                    double total = mercado.calcularTotalCompra(carrinho);
+                    System.out.println("Total do carrinho: R$ " + total);
+                    break;
+                case 4:
+                    System.out.print("Digite o nome do produto para devolução: ");
+                    String nomeDevolucao = scanner.next();
+                    System.out.print("Digite a quantidade a ser devolvida: ");
+                    int qtdDevolucao = scanner.nextInt();
+
+                    mercado.devolverProduto(nomeDevolucao, qtdDevolucao);
+                    break;
+                case 5:
+                    mercado.exibirSaldoCaixa();
+                    break;
+                case 6:
+                    System.out.println("Saindo...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        }
+    }
+}
